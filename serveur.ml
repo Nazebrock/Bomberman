@@ -1,5 +1,8 @@
 open Reseau;;
+open Gtypes;;
 
+let nbr_joueur = ref 0;;
+let map = "==========\n=    x   =\n=  = ==  =\n= x  =   =\n= =  =   =\n= x  =   =\n= =  x = =\n=  =  =  =\n==========\n";;
 (*
 communication serveur->client
 *)
@@ -15,6 +18,23 @@ let rec ecoute client =
 lecture de carte: ouvrir_carte Sys.argv.(1);;
 *)
 
+let nb_joueur carte =
+    let fichier = open_in carte in
+    let k = ref 0 in
+    begin
+      try
+        while true do
+        match input_char fichier with
+        |'\n'-> k := !k + 1
+        |'=' -> raise End_of_file
+        |_ -> k:= !k
+        done
+      with
+      | End_of_file -> ();
+    end;
+   !k;;
+
+
 let ouvrir_carte fichier = 
 	let f1 = open_in fichier
 	in 
@@ -23,10 +43,15 @@ let ouvrir_carte fichier =
 ;;
 
 (*--PRGM--*)
+let clients = ref []
+let run () = 
+	demarrer_le_serveur 7885;
+	for i = 1 to !nbr_joueur do
+		clients := !clients@[attendre_connexion_client ()];
+	done;
+;;
 
-demarrer_le_serveur 7885;;
-let c = attendre_connexion_client ()
-in envoyer_message_au_client "vous êtes connecté au serveur" c; ecoute c;;
+run ();;
 
 
 
