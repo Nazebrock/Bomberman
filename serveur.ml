@@ -1,94 +1,23 @@
 open Reseau;;
 open Gtypes;;
-open String;;
+open Bombermap;;
+
+let nbr_joueur = ref 1;;
+let position = [|(Bleu,1,1,Sud)|];;
+let map = ref "==========\n=    x   =\n=  = ==  =\n= x  =   =\n= =  =   =\n= x  =   =\n= =  x = =\n=  =  =  =\n==========\n";;
+let clients = ref [];;
+(*
+communication serveur->client
+*)
+
+let rec ecoute client = 
+	let reqlist = lire_requetes_clients [client]
+ 	in match reqlist with
+	|[] -> print_string "aucun msg dans boite aux lettres"; ecoute client
+	|x::s -> match x with   |MessageClient(c,m) -> print_string m; ecoute client
+			     			|DeconnexionClient(c) -> (); ecoute client
 
 
-let nbr_joueur = ref 0;;
-let map = "==========\n=    x   =\n=  = ==  =\n= x  =   =\n= =  =   =\n= x  =   =\n= =  x = =\n=  =  =  =\n==========\n";;
-
-
-(****Renvoi le nombre de joueurs de la carte***)
-let nb_joueur carte =
-    let fichier = open_in carte in
-    let k = ref 0 in
-    begin
-      try
-        while true do
-        match input_char fichier with
-        |'\n'-> k := !k + 1
-        |'=' -> raise End_of_file
-        |_ -> k:= !k
-        done
-      with
-      | End_of_file -> ();
-    end;
-   !k
-;;
-(****utile**string-->Gtypes.color********)
-let lect_color str = match str with 
-				|"bleu" -> Bleu
-				|"vert" -> Vert
-				|"rouge" -> Rouge
-				|"violet" -> Violet
-				|_ -> Bleu
-;;
-
-(****utile***string-->Gtypes.direction********)
-let lect_dir str = match str with 
-				|"Ouest" -> Ouest
-				|"Nord" -> Nord
-				|"Sud" -> Sud
-				|"Est" -> Est
-				|_ -> Nord
-;;
-
-(*** aux0 : coord_joueurs = prends la carte et renvoie une string contenant les infos et la carte***)
-let carte_to_string fichier_carte = 
-	let src = open_in fichier_carte in 				
-		let str = ref "" in
-		begin
-			try
-			while true do 
-						str := !str^"\n"^(input_line src);
-			done
-			with End_of_file -> ();
-			end;
- !str;;
-
-(****aux1 : coord_joueurs = fonction qui separe les infos/ de la carte*****)
-
-let get_info_string str = let l = Str.split (Str.regexp "[=]+") str
-				in 
-				List.hd l 
-;;
-
-(****aux2 : coord_joueurs = fonction qui separe les infos de chaque clients*******)
-
-let get_info_client str = let l = Str.split (Str.regexp "\n") str
-				in l 
-;;
-
-(******aux3 : coord_joueurs = fonction qui renvoie le quadruplet***********)
-
-let quadruplet str = let l = Str.split (Str.regexp " ") str
-			in 
-			(lect_color (List.nth l 0) , int_of_string (List.nth l 1), int_of_string (List.nth l 2), lect_dir (List.nth l 0) );; 
-
-
-(*** aux4 : coord_joueurs = fonction qui transforme string en quadruplet**)
-let info l = List.map quadruplet l ;;
-
-(*** aux0-4 ----> coord_joueurs **)
-let coord_joueurs carte = info (get_info_client( get_info_string( carte_to_string carte)));;   
-
-(*******************  PRGM  ***************)
-let clients = ref []
-let run () = 
-	demarrer_le_serveur 7885;
-	for i = 1 to !nbr_joueur do
-		clients := !clients@[attendre_connexion_client ()];
-	done
-;;
 (*****  test : coord_joueurs  *****)
 let rec aff l =
 		match l with
@@ -97,4 +26,26 @@ let rec aff l =
 let h = coord_joueurs Sys.argv.(1) in aff h;;
 
 
+(** Envoi les coordonné du joueur (color, x, y, dir) au client c*)
+
+let convert_pos (color, x, y, dir) = 
+    {x = x; y = y; couleur = color; dir = dir; etat = Vivant; pas = None};
+;;
+
+(** Envoi le message m à tout les clients *)
+let broadcast  m =
+    List.iter (fun a -> envoyer_message_au_client m a) !clients;
+;;
+
+(*******************  PRGM  ***************)
+let run () = 
+    demarrer_le_serveur 7885;
+    for i = 0 to !nbr_joueur - 1 do
+        let c = attendre_connexion_client () in
+        envoyer_message_au_client !map c;
+        envoyer_message_au_client !nbr_joueur c;
+        clients := !clients@[c];
+        broadcast (convert_pos position.(i));
+    done;
+;;
 
