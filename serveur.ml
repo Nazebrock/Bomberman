@@ -56,20 +56,17 @@ let carte_to_string fichier_carte =
  !str;;
 
 (****aux1 : coord_joueurs = fonction qui separe les infos/ de la carte*****)
-
 let get_info_string str = let l = Str.split (Str.regexp "[=]+") str
 				in 
 				List.hd l 
 ;;
 
 (****aux2 : coord_joueurs = fonction qui separe les infos de chaque clients*******)
-
 let get_info_client str = let l = Str.split (Str.regexp "\n") str
 				in l 
 ;;
 
 (******aux3 : coord_joueurs = fonction qui renvoie le quadruplet***********)
-
 let quadruplet str = let l = Str.split (Str.regexp " ") str
 			in 
 			(lect_color (List.nth l 0) , int_of_string (List.nth l 1), int_of_string (List.nth l 2), lect_dir (List.nth l 0) );; 
@@ -79,7 +76,20 @@ let quadruplet str = let l = Str.split (Str.regexp " ") str
 let info l = List.map quadruplet l ;;
 
 (*** aux0-4 ----> coord_joueurs **)
-let coord_joueurs carte = info (get_info_client( get_info_string( carte_to_string carte)));;   
+let coord_joueurs carte = info (get_info_client( get_info_string( carte_to_string carte)));;
+
+(***fonction List_to_array appliquée à coord_joueurs renvoi un tableau de quadruplets****) 
+let list_to_array l = 
+match l with
+| [] -> [| |] 
+| e :: _ ->
+let ar = Array.make (List.length l) e in
+let f index elem = 
+ar.(index) <- elem;
+index + 1 in
+ignore (List.fold_left f 0 l);
+ar 
+;;
 
 (*******************  PRGM  ***************)
 let clients = ref []
@@ -94,7 +104,9 @@ let rec aff l =
 		match l with
 		|[] -> ()	
 		|x::s -> match x with |(a,b,c,d) -> print_int b; print_int c; aff s ;;
+
 let h = coord_joueurs Sys.argv.(1) in aff h;;
 
+let () = match (list_to_array (coord_joueurs Sys.argv.(1))).(1) with (a,b,c,d) -> print_int b;print_int b;print_int b;print_int b;;
 
 
