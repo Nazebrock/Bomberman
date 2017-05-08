@@ -69,3 +69,9 @@ type sprite =
   | Bloc of bloc            (** Bloc      *)
   | Sol of int * int        (** Case vide à la position indiquée *)
 
+(** Le type d'action a effectuer sur le sprite *)
+type action_sprite =        
+      Affiche of sprite     (** Sprite a afficher *)
+    | Efface of sprite      (** Sprite a effacer *)
+    | Refresh of sprite     (** Sprite a rafraichir *)
+    | Fin of bool           (** Fin de partie *)

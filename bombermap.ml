@@ -73,4 +73,21 @@ let info l = List.map quadruplet l ;;
 (*** aux0-4 ----> coord_joueurs **)
 let coord_joueurs carte = info (get_info_client( get_info_string( carte_to_string carte)));;   
 
+let read_map map = 
+    let b = ref [] in let ligne = ref [] in
+    Printf.printf "Board %d\n" (String.length map);
+    String.iter (function
+        | '=' -> ligne := !ligne@[12]
+        | 'x' -> ligne := !ligne@[11]
+        | '\n'-> b := !b@[Array.of_list !ligne]; ligne := []
+        | _ -> ligne := !ligne@[0]
+    ) map;
+    Array.of_list !b;
+;;
 
+
+let get_map carte = 
+    let l = Str.split (Str.regexp "[=]+") (carte_to_string carte) in
+    List.iter (Printf.printf "%s") (List.tl l);
+    [||];
+;;

@@ -24,77 +24,80 @@ let check_point x y board =
 ;;
 
 (** Verifie si le joueur se fais toucher par une flamme *)
+
 let check_player player board =
     let hitbox = [|
-        [|(!player.x+(p_width/2))/width; !player.y/heigth|];
-        [|(!player.x-(p_width/2))/width; !player.y/heigth|];
-        [|!player.x/width; (!player.y+(p_heigth/2))/heigth|];
-        [|!player.x/width; (!player.y-(p_heigth/2))/heigth|];
+        [|(player.x+(p_width/2))/width; player.y/heigth|];
+        [|(player.x-(p_width/2))/width; player.y/heigth|];
+        [|player.x/width; (player.y+(p_heigth/2))/heigth|];
+        [|player.x/width; (player.y-(p_heigth/2))/heigth|];
     |] in
+    let p = ref player in
     for i = 0 to 3 do
         if board.(hitbox.(i).(0)).(hitbox.(i).(1)) = 2 then
-            player := {!player with etat = Grille}
+            p := {player with etat = Grille}
     done;
+    !p;
 ;;
 
 (** Incremente le champs pas du joueur *)
 let incr_pas player =
     let a = 
-    match !player.pas with
+    match player.pas with
         |Some i ->
             if i > 2 then Some 0
             else Some (i + 1)
-        |None -> None
+        |None -> Some 0 
     in
-    {!player with pas = a}
+    {player with pas = a}
 ;;
 
 (** Modifie la position du joueur en fonction de sa direction
  *  Prend en compte les colisions avec les bloc et les bord du plateau *)
-let move_player player board =
-    player := incr_pas player;
+let move_player p board =
+    let player = incr_pas p in
     let nbr_lig = Array.length board in let nbr_col = Array.length board.(0) in
-    match !player.dir with
+    match player.dir with
         | Nord ->   
-                let y = !player.y + (p_heigth/2) in let x = !player.x in
+                let y = player.y + (p_heigth/2) in let x = player.x in
                 if (y + pas) >= (nbr_lig * heigth) then 
-                    {!player with y = (nbr_lig * heigth)-(p_heigth/2)-1}
+                    {player with y = (nbr_lig * heigth)-(p_heigth/2)-1}
                 else if not (check_point (x + (p_width/2)) (y + pas) board) || 
                         not (check_point (x - (p_width/2)) (y + pas) board)
                 then 
-                    {!player with y = ((((y+pas)/heigth)*heigth)-(p_heigth/2))-1}
+                    {player with y = ((((y+pas)/heigth)*heigth)-(p_heigth/2))-1}
                 else 
-                    {!player with y = !player.y + pas}
+                    {player with y = player.y + pas}
         | Sud ->
-                let y = !player.y - (p_heigth/2) in let x = !player.x in
+                let y = player.y - (p_heigth/2) in let x = player.x in
                 if (y - pas) <= 0 then
-                    {!player with y = (p_heigth/2)}
+                    {player with y = (p_heigth/2)}
                 else if not (check_point (x + (p_width/2)) (y - pas) board) ||
                         not (check_point (x - (p_width/2)) (y - pas) board)
                 then
-                    {!player with y = (((!player.y/heigth)*heigth)+(p_heigth/2))}
+                    {player with y = (((player.y/heigth)*heigth)+(p_heigth/2))}
                 else
-                    {!player with y = !player.y - pas}
+                    {player with y = player.y - pas}
         | Ouest -> 
-                let y = !player.y in let x = !player.x - (p_width/2)in
+                let y = player.y in let x = player.x - (p_width/2)in
                 if (x - pas) <= 0 then
-                    {!player with x = (p_width/2)}
+                    {player with x = (p_width/2)}
                 else if not (check_point (x - pas) (y + (p_heigth/2)) board) ||
                         not (check_point (x - pas) (y - (p_heigth/2)) board)
                 then
-                    {!player with x = (((!player.x/width)*width)+(p_width/2))}
+                    {player with x = (((player.x/width)*width)+(p_width/2))}
                 else
-                    {!player with x = !player.x - pas}
+                    {player with x = player.x - pas}
         | Est ->
-                let y = !player.y in let x = !player.x + (p_width/2)in
+                let y = player.y in let x = player.x + (p_width/2)in
                 if (x + pas) >= (nbr_col * width) then
-                    {!player with x = (nbr_col * width)-(p_width/2)-1}
+                    {player with x = (nbr_col * width)-(p_width/2)-1}
                 else if not (check_point (x + pas) (y + (p_heigth/2)) board) ||
                         not (check_point (x + pas) (y - (p_heigth/2)) board)
                 then
-                    {!player with x = ((((x+pas)/width)*width)-(p_width/2))-1}
+                    {player with x = ((((x+pas)/width)*width)-(p_width/2))-1}
                 else
-                    {!player with x = !player.x + pas}
+                    {player with x = player.x + pas}
 ;;
 
 
