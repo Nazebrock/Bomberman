@@ -33,47 +33,9 @@ let explosing_bombe = ref [];;
 (** Stock les bombes active *)
 let active_bombe = ref [];;
 
-<<<<<<< HEAD
-(****aux1 : coord_joueurs = fonction qui separe les infos/ de la carte*****)
-let get_info_string str = let l = Str.split (Str.regexp "[=]+") str
-				in 
-				List.hd l 
-;;
-
-(****aux2 : coord_joueurs = fonction qui separe les infos de chaque clients*******)
-let get_info_client str = let l = Str.split (Str.regexp "\n") str
-				in l 
-;;
-
-(******aux3 : coord_joueurs = fonction qui renvoie le quadruplet***********)
-let quadruplet str = let l = Str.split (Str.regexp " ") str
-			in 
-			(lect_color (List.nth l 0) , int_of_string (List.nth l 1), int_of_string (List.nth l 2), lect_dir (List.nth l 0) );; 
-
-
-(*** aux4 : coord_joueurs = fonction qui transforme string en quadruplet**)
-let info l = List.map quadruplet l ;;
-
-(*** aux0-4 ----> coord_joueurs **)
-let coord_joueurs carte = info (get_info_client( get_info_string( carte_to_string carte)));;
-
-(***fonction List_to_array appliquée à coord_joueurs renvoi un tableau de quadruplets****) 
-let list_to_array l = 
-match l with
-| [] -> [| |] 
-| e :: _ ->
-let ar = Array.make (List.length l) e in
-let f index elem = 
-ar.(index) <- elem;
-index + 1 in
-ignore (List.fold_left f 0 l);
-ar 
-;;
-
-=======
 (** Envoi les coordonné du joueur (color, x, y, dir) au client c*)
 let convert_pos (color, x, y, dir) = 
-    {x = (x*width)+p_width; y = (y*heigth)+p_heigth; couleur = color; dir = dir; etat = Vivant; pas = None};
+    {x = (x*width)+p_width; y = (y*heigth)+p_heigth; couleur = color; dir = dir; etat = Vivant; pas = Some 0};
 ;;
 
 (** Envoi le message m à tout les clients *)
@@ -81,7 +43,6 @@ let broadcast  m =
     List.iter (fun a -> envoyer_message_au_client m a) !clients;
 ;;
 
->>>>>>> 94bfce38ec580df5e7dc23ac6975b37d96817868
 (*******************  PRGM  ***************)
 
 let initMap () =
@@ -115,7 +76,11 @@ let traite_req reqs =
                     | 'b' -> let p = Hashtbl.find !players c in
                              add_bombe (p.x/width) (p.y/heigth) !board active_bombe;
                     | _ -> ())
-        | DeconnexionClient c -> ()
+        | DeconnexionClient c -> 
+                Hashtbl.replace !players c {(Hashtbl.find !players c) with etat = Mort};
+                sprites := !sprites@[Efface (Bomberman (Hashtbl.find !players c))];
+                sprites := !sprites@[Affiche (Bomberman (Hashtbl.find !players c))];
+                clients := List.fold_left (fun l cl -> if cl = c then l else l@[cl]) [] !clients;
     ) reqs;
 ;;
 
@@ -126,18 +91,22 @@ let refresh_players () =
         p := check_player !p !board;
         match !p.etat with
             | Vivant -> p := (move_player !p !board);
-        Hashtbl.replace !players c !p;
-        sprites := !sprites@[Affiche (Bomberman !p)];
+                        Hashtbl.replace !players c !p;
+                        sprites := !sprites@[Affiche (Bomberman !p)];
+            | Grille -> sprites := !sprites@[Affiche (Bomberman !p)];
+                        p := {!p with etat = Mort};
+                        Hashtbl.replace !players c !p;
+            | Mort ->   sprites := !sprites@[Affiche (Bomberman !p)];
     ) !clients;
 ;;
 
 let check_fin () =
-    let cpt = List.fold_left (fun a c -> 
-        if (Hashtbl.find !players c).etat = Mort then
+    let cpt = Hashtbl.fold (fun k v a -> 
+        if v.etat = Mort then
             a + 1
         else
             a;
-    ) 0 !clients in
+    ) !players 0 in
     cpt = !nbr_joueur;
 ;;
 
@@ -159,22 +128,11 @@ let gameLoop () =
         bombe := not !bombe;
         fin := check_fin ();
     done;
+    Unix.sleep 1;
     broadcast (Fin true);
+    Unix.sleep 1;
     Printf.printf "PARTIE FINI\n";
 ;;
-<<<<<<< HEAD
-(*****  test : coord_joueurs  *****)
-let rec aff l =
-		match l with
-		|[] -> ()	
-		|x::s -> match x with |(a,b,c,d) -> print_int b; print_int c; aff s ;;
-
-let h = coord_joueurs Sys.argv.(1) in aff h;;
-
-let () = match (list_to_array (coord_joueurs Sys.argv.(1))).(1) with (a,b,c,d) -> print_int b;print_int b;print_int b;print_int b;;
-
-=======
->>>>>>> 94bfce38ec580df5e7dc23ac6975b37d96817868
 
 initMap ();;
 run () ;;

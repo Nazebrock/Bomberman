@@ -48,11 +48,11 @@ let gameLoop () =
                 | Affiche s -> Ig.affiche_sprite s
                 | Efface s -> Ig.efface_sprite s
                 | Refresh s -> Ig.efface_sprite s; Ig.affiche_sprite s
-                | Fin b -> fin := b
+                | Fin b -> Printf.printf "Fin";fin := b
             ) m;
             Ig.affiche ();
         with | Aucun_Message -> ();
-             (*| Graphics.Graphic_failure m -> envoyer_message_au_serveur (DeconnexionClient !me);*)
+             | Graphics.Graphic_failure m -> deconnection_du_serveur (); fin := true;
     done;
 ;;
 
