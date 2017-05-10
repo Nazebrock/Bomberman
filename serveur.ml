@@ -106,7 +106,10 @@ let check_fin () =
         else
             a;
     ) !players 0 in
-    cpt = !nbr_joueur;
+    if !nbr_joueur > 1 then
+        cpt = !nbr_joueur - 1
+    else
+        cpt = !nbr_joueur;
 ;;
 
 let gameLoop () =
@@ -127,9 +130,7 @@ let gameLoop () =
         bombe := not !bombe;
         fin := check_fin ();
     done;
-    Unix.sleep 1;
-    broadcast (Fin true);
-    Unix.sleep 1;
+    broadcast ([Fin true]);
     Printf.printf "PARTIE FINI\n";
 ;;
 

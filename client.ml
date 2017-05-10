@@ -41,7 +41,7 @@ let gameLoop () =
                 | Affiche s -> Ig.affiche_sprite s
                 | Efface s -> Ig.efface_sprite s
                 | Refresh s -> Ig.efface_sprite s; Ig.affiche_sprite s
-                | Fin b -> fin := b
+                | Fin b -> fin := b;
             ) m;
             Ig.affiche ();
         with | Aucun_Message -> ();

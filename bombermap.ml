@@ -81,7 +81,6 @@ let read_map file nbr_pos =
     let b = ref [] in let ligne = ref [] in
     for i = 0 to String.length (List.hd !f) -1 do
         List.iter ( fun str ->
-            Printf.printf "%c" str.[i];
             match str.[i] with
                 | '=' -> ligne := 12::!ligne
                 | 'x' -> ligne := 11::!ligne
