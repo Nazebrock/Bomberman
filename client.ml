@@ -14,6 +14,9 @@ let board = ref [||];;
 let width = 92;;
 let heigth = 72;;
 
+(** Etablie la duree de recharge d'une bombe*)
+let bomb_reload = 70;;
+
 let initBoard b =
     let nbr_col = Array.length b.(0) in
     let nbr_lig = Array.length b in
@@ -31,11 +34,19 @@ let initBoard b =
 
 let gameLoop () =
     let fin = ref false in
+    let bomb_timer = ref 0 in
     while not !fin do
         try
             Unix.sleepf 0.01;
-            if Ig.touche_pressee () then
-                envoyer_message_au_serveur (Ig.lecture_touche ());
+            if Ig.touche_pressee () then begin
+                let c = Ig.lecture_touche () in
+                match c with
+                    | 'b' -> if !bomb_timer = 0 then begin
+                                bomb_timer := bomb_reload;
+                                envoyer_message_au_serveur 'b'
+                    end;
+                    | _ -> envoyer_message_au_serveur c;
+            end;
             let m = recevoir_un_message_du_serveur () in
             List.iter (function
                 | Affiche s -> Ig.affiche_sprite s
@@ -43,6 +54,8 @@ let gameLoop () =
                 | Refresh s -> Ig.efface_sprite s; Ig.affiche_sprite s
                 | Fin b -> fin := b;
             ) m;
+            if !bomb_timer > 0 then
+                bomb_timer := !bomb_timer - 1;
             Ig.affiche ();
         with | Aucun_Message -> ();
              | Graphics.Graphic_failure m -> deconnection_du_serveur (); fin := true;
