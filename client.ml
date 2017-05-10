@@ -15,16 +15,9 @@ let width = 92;;
 let heigth = 72;;
 
 let initBoard b =
-    Printf.printf "INIT BOARD\n";
-    Array.iter (fun a -> Array.iter (function
-        |12 -> Printf.printf "="
-        |11 -> Printf.printf "x"
-        | 0 -> Printf.printf " "
-    ) a; Printf.printf "\n") b;
     let nbr_col = Array.length b.(0) in
     let nbr_lig = Array.length b in
-    Printf.printf "Board %d %d\n" nbr_col nbr_lig;
-    Ig.init width heigth nbr_col nbr_lig;
+    Ig.init width heigth nbr_lig nbr_col;
     for i = 0 to nbr_lig - 1  do
         for j = 0 to nbr_col - 1 do
             if b.(i).(j) = 11 then
@@ -48,7 +41,7 @@ let gameLoop () =
                 | Affiche s -> Ig.affiche_sprite s
                 | Efface s -> Ig.efface_sprite s
                 | Refresh s -> Ig.efface_sprite s; Ig.affiche_sprite s
-                | Fin b -> Printf.printf "Fin";fin := b
+                | Fin b -> fin := b
             ) m;
             Ig.affiche ();
         with | Aucun_Message -> ();

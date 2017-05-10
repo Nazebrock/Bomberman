@@ -35,7 +35,7 @@ let active_bombe = ref [];;
 
 (** Envoi les coordonné du joueur (color, x, y, dir) au client c*)
 let convert_pos (color, x, y, dir) = 
-    {x = (x*width)+p_width; y = (y*heigth)+p_heigth; couleur = color; dir = dir; etat = Vivant; pas = Some 0};
+    {x = (x*width)+(p_width/2); y = (y*heigth)+(p_heigth/2); couleur = color; dir = dir; etat = Vivant; pas = Some 0};
 ;;
 
 (** Envoi le message m à tout les clients *)
@@ -47,11 +47,10 @@ let broadcast  m =
 
 let initMap () =
     Printf.printf "INIT SERVEUR MAP\n";
-    let map = "==========\n=    x   =\n=  = ==  =\n= x  =   =\n= =  =   =\n= x  =   =\n= =  x = =\n=  =  =  =\n==========\n" in
     position := Array.of_list (coord_joueurs Sys.argv.(1));
     nbr_joueur := Array.length !position;
     players := Hashtbl.create !nbr_joueur;
-    board := read_map map;
+    board := read_map Sys.argv.(1) (Array.length !position);
 ;;
 
 let run () = 
