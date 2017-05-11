@@ -14,6 +14,8 @@ let board = ref [||];;
 let width = 92;;
 let heigth = 72;;
 
+let port = ref 8888;;
+let machine = ref "127.0.0.1";;
 (** Etablie la duree de recharge d'une bombe*)
 let bomb_reload = 70;;
 
@@ -64,9 +66,16 @@ let gameLoop () =
 
 
 let connect () =
-    connexion_au_serveur "127.0.0.1" 7885;
+    connexion_au_serveur !machine !port;
     board := recevoir_un_message_du_serveur ();
 ;;
+
+let speclist = [
+    ("-port", Arg.Int (fun p -> port := p), "Spécifie le port du serveur (8888 par defaut)");
+    ("-machine", Arg.String (fun p -> machine := p), "Spécifie l'adresse ip du serveur (127.0.0.1 par defaut)");
+    ];;
+let usage = "Client de jeu Bomberman";;
+Arg.parse speclist print_endline usage;;
 
 connect ();;
 initBoard !board;;

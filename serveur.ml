@@ -9,6 +9,9 @@ let heigth = 72;;
 let p_width = 48;;
 let p_heigth = 70;;
 
+let port = ref 8888;;
+let speed = ref 0.03;;
+let map_file = ref "map/map0";;
 (** Nombre de joueur possible sur cette map *)
 let nbr_joueur = ref 1;;
 (** Tableau des positions initiales au format : Color * int * int* Dir *)
@@ -47,15 +50,15 @@ let broadcast  m =
 
 let initMap () =
     Printf.printf "INIT SERVEUR MAP\n";
-    position := Array.of_list (coord_joueurs Sys.argv.(1));
+    position := Array.of_list (coord_joueurs !map_file);
     nbr_joueur := Array.length !position;
     players := Hashtbl.create !nbr_joueur;
-    board := read_map Sys.argv.(1) (Array.length !position);
+    board := read_map !map_file (Array.length !position);
 ;;
 
 let run () = 
     Printf.printf "START SERVEUR\n";
-    demarrer_le_serveur 7885;
+    demarrer_le_serveur !port;
     for i = 0 to !nbr_joueur - 1 do
         let c = attendre_connexion_client () in
         envoyer_message_au_client !board c;
@@ -117,7 +120,7 @@ let gameLoop () =
     let fin = ref false in
     let bombe = ref false in
     while not !fin do 
-        Unix.sleepf 0.03;
+        Unix.sleepf !speed;
         let reqs = lire_requetes_clients !clients in
         traite_req reqs;
         if !bombe then
@@ -134,6 +137,15 @@ let gameLoop () =
     Printf.printf "PARTIE FINI\n";
 ;;
 
+let speclist = [
+    ("-port", Arg.Int (fun p -> port := p), "Spécifie le port du serveur (8888 par defaut)");
+    ("-speed", Arg.Float (fun p -> speed := p), "Spécifie le temps d'un tour de boucle du jeu (en seconde)");
+    ("-map", Arg.String (fun p -> map_file := p), "Spécifie le fichier de configuration de la map");
+    ("-nbj", Arg.Int (fun p -> nbr_joueur := p), "Spécifie le nombre de joueur (spécifier par le fichier map par défaut)");
+    ];;
+let usage = "Serveur de Bomberman";;
+
+Arg.parse speclist print_endline usage;;
 initMap ();;
 run () ;;
 gameLoop ();;
