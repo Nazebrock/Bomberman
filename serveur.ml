@@ -12,6 +12,7 @@ let p_heigth = 70;;
 let port = ref 8888;;
 let speed = ref 0.03;;
 let map_file = ref "map/map0";;
+let opt_nbr_joueur = ref 0;;
 (** Nombre de joueur possible sur cette map *)
 let nbr_joueur = ref 1;;
 (** Tableau des positions initiales au format : Color * int * int* Dir *)
@@ -51,7 +52,10 @@ let broadcast  m =
 let initMap () =
     Printf.printf "INIT SERVEUR MAP\n";
     position := Array.of_list (coord_joueurs !map_file);
-    nbr_joueur := Array.length !position;
+    if !opt_nbr_joueur = 0 then
+        nbr_joueur := Array.length !position
+    else
+        nbr_joueur := !opt_nbr_joueur;
     players := Hashtbl.create !nbr_joueur;
     board := read_map !map_file (Array.length !position);
 ;;
@@ -63,7 +67,7 @@ let run () =
         let c = attendre_connexion_client () in
         envoyer_message_au_client !board c;
         clients := !clients@[c];
-        Hashtbl.add !players c (convert_pos !position.(i));
+        Hashtbl.add !players c (convert_pos !position.(i mod (Array.length !position)));
     done;
 ;;
 
@@ -141,7 +145,7 @@ let speclist = [
     ("-port", Arg.Int (fun p -> port := p), "Spécifie le port du serveur (8888 par defaut)");
     ("-speed", Arg.Float (fun p -> speed := p), "Spécifie le temps d'un tour de boucle du jeu (en seconde)");
     ("-map", Arg.String (fun p -> map_file := p), "Spécifie le fichier de configuration de la map");
-    ("-nbj", Arg.Int (fun p -> nbr_joueur := p), "Spécifie le nombre de joueur (spécifier par le fichier map par défaut)");
+    ("-nbj", Arg.Int (fun p -> opt_nbr_joueur := p), "Spécifie le nombre de joueur (spécifier par le fichier map par défaut)");
     ];;
 let usage = "Serveur de Bomberman";;
 
